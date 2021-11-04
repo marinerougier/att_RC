@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>exp</title>
+    <script src="js/jspsych.js"></script>
+    <script src="js/plugins/jspsych-fullscreen.js"></script>
+    <script src="js/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="js/plugins/jspsych-image-keyboard-response.js"></script>
+    <script src="js/plugins/jspsych-html-button-response.js"></script>
+    <script src="js/plugins/jspsych-survey-text.js"></script>
+    <script src="js/plugins/jspsych-survey-likert.js"></script>
+    <script src="js/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="js/plugins/jspsych-video-keyboard-response.js"></script>
+    <script src="js/plugins/jspsych-html-mouse-response.js"></script>
+    <script src="jsPsych-6.1.0/plugins/jspsych-external-html.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/lodash.min.js"></script>
+    <script src="js/firebase.js"></script>
+    <link href="js/css/jspsych.css" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            cursor: default;
+        }
+        .rcimg-12 {
+            cursor: pointer;
+        }
+        .rcimg-12 {
+            margin: 10px;
+        }
+        .rcimg-12:hover {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        }
+        .imgarticle {
+             height: 800px; 
+        }
+        .jspsych-content-wrapper {
+            width: 900px;
+            height: 10000px;
+        }
+    </style>
+</head>
+
+<body></body>
+
+<script>
+
+    /* Parameters */
+    var numOfPairs = 150 * 6; // Total number of pair images images (inv & ori)
+
+    // var qlink = 'https://uclpsychology.co1.qualtrics.com/jfe/form/SV_3ehqq1xeNEEfP2R';
+    var FBdirectory = 'RCmarine_MgFr'; // Firebase directory
+
+
+
+    /* Functions */
+    // Return image link
+    var imgLink = function (imgNum, oriInv) {
+
+        if (oriInv == "inv") {
+            return 'https://marinerougier.github.io/CIs_MgFr_Inv/faceInv' + imgNum + '.png?raw=1'
+        } else {
+            return 'https://marinerougier.github.io/CIs_MgFr_Ori/faceOri' + imgNum + '.png?raw=1'
+        };
+    };
+
+
+
+    /* Initial variables */
+    var timeline = [];
+    var preloadimages = [];
+    var preloadvideo = [];
+    var jspsych_id = jsPsych.data.getURLVariable("jspsych_id");    
+    if (jspsych_id == null) { jspsych_id = jsPsych.randomization.randomID(15) };
+    var prolificID = jsPsych.data.getURLVariable("PROLIFIC_PID");
+    if(prolificID == null) {prolificID = "999";}
+
+    /* Generate RC trials */
+
+    var imgsRC = $.map($(Array(numOfPairs)), function (val, i) { return i + 1; }); // generate numerical sequence
+
+    imgsRC.map(function (e) {
+        preloadimages.push(imgLink(e, 'ori'));
+        preloadimages.push(imgLink(e, 'inv'));
+    });
+
+
+    var genFacesPerSlide = function (numOfFacesPerTrial, imgs) {
+        numOfFacesPerTrial = numOfFacesPerTrial / 2;
+        var chunkedArray = [];
+        var i, j, trialImgs, chunk = numOfFacesPerTrial;
+
+        for (i = 0, j = imgs.length; i < j; i += chunk) {
+
+            trialImgs = imgs.slice(i, i + chunk);
+
+            var tempOri = [];
+            var tempInv = [];
+
+            trialImgs.map(function (e) {
+                tempOri.push(imgLink(e, 'ori'));
+                tempInv.push(imgLink(e, 'inv'));
+            });
+
+
+            trialImgs = _.flattenDeep([tempOri, tempInv]);
+
+            // trialImgs = _.shuffle(trialImgs); // randomize order in slide
+
+            chunkedArray.push({
+                trialImgs
+            });
+        }
+        return chunkedArray;
+    };
+
+
+    var RCstim = genFacesPerSlide(12, imgsRC); // RC fast-12: 250 trials (6 ori + 6 anti = 12  faces per trial)
+
+    // randomly assigning either the female or the male list 
+    var cond = jsPsych.randomization.sampleWithoutReplacement(["attentats", "jo"], 1)[0];
+
+    var video_att = ["videos/Attentats.mp4"];
+    preloadvideo.push(video_att);
+
+    var article_att = ["articles/Article_JO.png"];
+    preloadimages.push(article_att);
+
+    // EXPERIMENT -----------------------------------------------------------------------------------------------------------------
+    /* Instructions and Fullscreen mode */
+
+    var activateFullscreen = {
+        type: 'fullscreen',
+        fullscreen_mode: true,
+        delay_after: 500,
+        message: "",
+        button_label: "Pour commencer, merci de vous mettre en mode plein écran en cliquant ici. ",
+    };
+
+    // Consent
+    var check_consent = function(elem) {
+      if (document.getElementById('info').checked 
+        & document.getElementById('volunt').checked 
+        & document.getElementById('anony').checked 
+        & document.getElementById('end').checked 
+        & document.getElementById('consqc').checked 
+        & document.getElementById('summ').checked 
+        & document.getElementById('participate').checked ) {
+        return true;
+      }
+      else {
+        alert("If you wish to participate, you must check all the boxes.");
+        return false;
+      }
+      return false;
+    };
+
+
+    var consent = {
+      type:'external-html',
+      //url: "https://marinerougier.github.io/terr_RC/formulaire_consentement.html",
+      url: "https://marinerougier.github.io/Ugent_1/external_page_consent.html",
+      cont_btn: "start",
+      check_fn: check_consent
+    };
+
+  /* General INSTRUCTIONS */
+
+  var Quit_expe = {
+    type: "html-button-response",
+    post_trial_gap: 300,
+    choices: ['continuer'],
+    stimulus: function() {
+      var html = "";
+      html += "<h1>Avant de commencer...</h1>";
+      html += "<p class='justify'>Vous pouvez arrêter l'étude à tout moment en fermant cette fenêtre. Sachez, cependant, que ";
+      html += "cela <b>arrêtera votre participation</b>. Si vous êtes certain.e que vous voulez arrêter l'étude ou si vous rencontrez des problèmes techniques ";
+      html += "qui vous forcent à arrêter l'étude, <b>vous pouvez toujours recevoir une rétribution partielle et proportionnelle au temps que vous avez passé sur l'étude</b>. ";
+      html += "Si cela se produit, merci de suivre la procédure suivante : Retournez sur la page Prolific de l'étude aussi rapidement ";
+      html += "que possible (ne soumettez pas l'étude sauf si vous l'avez complétée entièrement et avez reçu le code de complétion). ";
+      html += "Envoyez un message au chercheur responsable sur Prolific en indiquant que vous avez complété une partie de l'étude ";
+      html += "(ceci permettra au chercheur de savoir que vous avez droit à une rétribution partielle). </br></br> ";
+      return html;
+    },
+  };
+
+    /* Induction  */
+
+    var induct_att_1 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 1: Tâche de formation d'impression et mémoire <br> Partie Vidéo </h1>";
+            html += "<p class = 'justify'> Dans cette partie, nous allons vous présenter une courte vidéo (environ 5 min). ";
+            html += "Cette vidéo porte sur la thématique des attentats terroristes.  ";
+            html += "Votre tâche sera de regarder <b>attentivement</b> la vidéo tout en essayant de vous concentrer sur ";
+            html += "les impressions et émotions que vous ressentez durant la vidéo. ";
+            html += "Nous vous poserons des questions sur la vidéo à la fin de l'étude, aussi merci de faire votre possible pour garder en mémoire les images que vous allez voir. </p>";
+            return html;
+        },
+    };
+
+    var induct_JO_1 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 1: Tâche de formation d'impression et mémoire <br> Partie Vidéo </h1>";
+            html += "<p class = 'justify'> Dans cette partie, nous allons vous présenter une courte vidéo (environ 5 min). ";
+            html += "Cette vidéo porte sur la thématique des Jeux Olympiques.  ";
+            html += "Votre tâche sera de regarder <b>attentivement</b> la vidéo tout en essayant de vous concentrer sur ";
+            html += "les impressions et émotions que vous ressentez durant la vidéo. ";
+            html += "Nous vous poserons des questions sur la vidéo à la fin de l'étude, aussi merci de faire votre possible pour garder en mémoire les images que vous allez voir. </p>";
+            return html;
+        },
+    };
+
+    /* Vidéo Attentats  */
+    var video_attentats = {
+        type: 'video-keyboard-response',
+        sources: video_att,
+        prompt: "IMPORTANT : Avant d'appuyer sur le bouton 'lecture', merci de <b>mettre la vidéo en plein écran.</b><br> Merci aussi de <b>regarder la vidéo en une seule fois.</b>",
+        choices: jsPsych.NO_KEYS,
+        trial_ends_after_video: true,
+        controls: true,
+        autoplay: false,
+        width: 800
+    }
+
+    var induct_gene_2 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 1: Tâche de formation d'impression et mémoire <br> Partie Vidéo </h1>";
+            html += "<p class = 'justify'> La vidéo est terminée. Merci de faire votre possible pour garder en mémoire les images que ";
+            html += "vous venez de voir car nous vous poserons des questions sur la vidéo à la fin de l'étude. ";
+            html += "Vous allez maintenant passer à la deuxième partie de cette tâche. </p>";
+            return html;
+        },
+    };
+    
+    var induct_gene_3 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 1: Tâche de formation d'impression et mémoire <br> Partie Article de presse </h1>";
+            html += "<p class = 'justify'> Nous allons maintenant vous demander de lire un article de presse tiré ";
+            html += " du journal 'Le Monde'. Cet article de presse porte sur la même thématique que la vidéo qui vous a été présentée. ";
+            html += "Comme pour la vidéo, votre tâche est de lire <b>attentivement</b> l'article tout en essayant de vous concentrer sur ";
+            html += "les impressions et émotions que vous ressentez durant votre lecture. ";
+            html += "Nous vous poserons des questions sur l'article à la fin de l'étude, aussi merci de faire votre possible pour garder en mémoire votre lecture. </p>";
+            return html;
+        },
+    };
+
+    var article_attentats = {
+    type: "html-button-response",
+    post_trial_gap: 300,
+    choices: ['continuer'],
+    stimulus: function () {
+            var html = "";
+            html += "<img class='imgarticle' src='" + article_att+ "'>";
+            return html;
+        },
+  };
+
+    var induct_gene_4 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 1: Tâche de formation d'impression et mémoire </h1>";
+            html += "<p class = 'justify'> Cette tâche est maintenant terminée. Encore une fois, merci de faire votre possible pour garder en mémoire la vidéo et l'article ";
+            html += "que vous venez de voir car vous devrez répondre à des questions les concernant à la fin de l'étude. ";
+            html += "Vous allez maintenant passer à la deuxième tâche qui porte sur la reconnaissance des visages. </p>";
+            return html;
+        },
+    };
+
+    /* RC instructions */
+    var RCinst2 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 2: Tâche de reconnaissance des visages</h1>";
+            html += "<p class = 'justify'> Dans cette tâche, nous allons vous présenter une série de visages similaires à l'exemple présenté ci-dessous. ";
+            html += "A chaque essai, nous vous présenterons 12 visages. ";
+            html += "Notez que ces visages ont été délibérément floutés pour des raisons d'anonymat, ce qui les rendra similaires entre eux. ";
+            html += "Cependant, ces visages sont bel et bien différents les uns des autres.</p>";
+            html += "<img width='200' style='padding: 0px' src='" + imgLink(474, 'ori') + "'>";
+            return html;
+        },
+    };
+
+    var RCinst3 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 2: Tâche de reconnaissance des visages</h1>";
+            html += "<p class = 'justify'>A chaque essai, votre tâche sera de choisir, parmi les 12 visages, celui qui ressemble le plus à ";
+            html += "<b>un individu d'origine maghrébine, autrement dit le visage qui vous semble le plus typiquement maghrébin. </b><br>";
+            html += "<p class = 'justify'>Merci d'utiliser votre souris d'ordinateur pour sélectionner un visage.</p>";
+            html += "<img width='200' style='padding: 0px' src='" + imgLink(474, 'ori') + "'>";
+            return html;
+        },
+    };
+
+    var RCinst4 = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['commencer'],
+        stimulus: function () {
+            var html = "";
+            html += "<h1>Tâche 2: Tâche de reconnaissance des visages</h1>";
+            html += "<p class = 'justify'>Avant de commencer, merci de noter que : </br></br>";
+            html += "<b>Il n'y a pas de bonne ou de mauvaise réponse !</b> ";
+            html += "Vous devez juste faire un choix aussi <b>intuitivement</b> que possible. ";
+            html += "A chaque essai, les participants prennent en moyenne <b>3 secondes</b> ";
+            html += "pour sélectionner un visage. Merci <b>d'essayer de maintenir un temps de réponse similaire</b>.</br></br>";
+            html += "Dans cette tâche, vous devrez effectuer 150 essais.</p>";
+            return html;
+        },
+    };
+
+    /* RC */
+
+    var i = 1;
+    var RC = {
+        timeline_variables: RCstim,
+        randomize_order: true,
+        //sample: {
+        //    type: 'custom',
+        //    fn: function (t) { return [1, 2, 3] }
+        //},
+        data: {
+            task: 'RC',
+        },
+        timeline: [{
+            type: 'html-mouse-response',
+            stimulus: function () {
+                html = "";
+                html += "<p>Veuillez sélectionner le visage qui vous semble le plus <b>maghrébin</b> </br></br>";
+                jsPsych.timelineVariable('trialImgs', true).map(function (e) {
+                    html += "<img class='rcimg-12' src='" + e + "'>";
+                });
+                html += "</br> Essai: " + i + "/150</br>";
+                i += 1;
+                return html;
+            },
+        }]
+    };
+
+    var RCend = {
+        type: "html-button-response",
+        post_trial_gap: 300,
+        choices: ['continuer'],
+        stimulus: function () {
+            var html = "";
+            html += "<p class = 'justify'>La tâche de sélection de visages (Tâche 2) est terminée. Vous allez maintenant passer à la tâche 3.</br></p>";
+            return html;
+        },
+    };
+
+    var exitFullscreen = {
+        type: 'fullscreen',
+        fullscreen_mode: false,
+        delay_after: 400,
+    };
+
+    preloadimages = _.flattenDeep(preloadimages);
+
+      /* DEBRIEF */
+  var debrief = [];
+  debrief += "<h1>End of the study</h1>";
+  debrief += "<p class='justify'>Thank you for participating in this online experiment!<br><br>";
+  debrief += "In some experiments, we cannot tell people everything about the experiment at the beginning because their responses would not be ";
+  debrief += "natural. For example, if we told people what the point of the experiment was ahead of time, then some people might do whatever ";
+  debrief += "it is they think we want them to do, just to be helpful. Other people might do the exact opposite of what they think we want "; 
+  debrief += "them to do, just to show us that we cannot figure them out. When people are trying to second-guess what the experiment is "; 
+  debrief += "really about, and they behave a certain way because of it, our results get messed up. That is because they are not behaving "; 
+  debrief += "like they naturally would in the real world. The whole point of this experiment is to find out how people would ";
+  debrief += "naturally behave.<br><br>";
+  debrief += "Now we would like to explain what we were trying to learn about with this study. First of all, you should know that the aim of "; 
+  debrief += "this study was not to investigate your perception accuracy. Perception accuracy is not a real ability. Instead, our "; 
+  debrief += "aim was to test whether your judgment of the three persons you saw depended on the physical attractiveness of the persons they were associated with. "; 
+  debrief += "Individuals tend to attribute many positive qualities to attractive persons. For instance, when a person is attractive, "; 
+  debrief += "people tend to think that s/he is also trustworthy.<br><br>";
+  debrief += "Our goal is to test if we can find a similar effect (that is called the “attractiveness Halo effect”) in the present study "; 
+  debrief += "with our procedure. Indeed, in the present study, we presented you faces varying on attractiveness (on the ) "; 
+  debrief += "on one side of the screen, paired with faces relatively neutral on attractiveness on the other side (on the ). ";
+  debrief += "Our hypothesis was thus that the attractiveness value of the attractive/less attractive face should influence the ";
+  debrief += "perceived attractiveness of the other face in the pair. Therefore, participants’ evaluations of the initially neutral faces "; 
+  debrief += "should vary as a function of the physical attractiveness of the faces they were paired with. <br><br>";
+  debrief += "In addition, for half of the participants, we made the attractiveness of the faces on the  very salient ";
+  debrief += "(with labels and instructions). The other half of the participants did not receive this attractiveness information. ";
+  debrief += "We expect the influence of the attractiveness on the on the other face to be larger for the first group of participants. <br><br>";
+  debrief += "We would like to emphasize that there are no correct responses in this study: We were looking at people’s natural responses. ";
+  debrief += "We hope you understand that we couldn't tell you all of this before because it would have ruined our study. ";
+  debrief += "Again, your responses will be anonymous and will be analyzed as part of a group of responses.</br></br>";
+  debrief += "We hope this explanation was clear. If you want additional information, if you have any questions, or if you would like ";
+  debrief += "to withdraw consent and have your data excluded, do not hesitate to contact us via Prolific Academic. If you are "; 
+  debrief += "interested, you can also ask for the results of this experiment—be aware, however, that this could take several weeks "; 
+  debrief += "to gather all the data we need and to analyze them. <br><br>";
+  debrief += "You can copy this code on Prolific: <b>68784134</b> ";
+  debrief += "or you can click on the following link to validate your participation:</p>";
+  debrief += "<a href='https://app.prolific.co/submissions/complete?cc=68784134' target='_blank'>click here</a><br><br>";
+
+
+
+    /*  ~~~~~~~~~~~~~~~~ TIMELINES  ~~~~~~~~~~~~~~~~ */
+
+    //timeline.push(consent);
+    timeline.push(activateFullscreen,
+                Quit_expe);
+
+    timeline.push(induct_att_1,
+                  video_attentats,
+                  induct_gene_2,
+                  induct_gene_3,
+                  article_attentats,
+                  induct_gene_4,
+                  RCinst2,
+                  RCinst3,
+                  RCinst4,
+                  RC);
+
+    timeline.push(exitFullscreen);
+
+    /* start the experiment */
+    jsPsych.init({
+        timeline: _.flattenDeep(timeline),
+        preload_images: preloadimages,
+        max_load_time: 1000 * 500,
+        exclusions: {
+            min_width: 800,
+            min_height: 600,
+        },
+        on_finish: function (data) {
+            $("#jspsych-content").html("<img src='https://i.gifer.com/4V0b.gif'>");
+            
+            /* Initialize Firebase */
+            var config = {
+                apiKey: "AIzaSyBwDr8n-RNCbBOk1lKIxw7AFgslXGcnQzM",
+                databaseURL: "https://marineexpe.firebaseio.com/"
+            };
+
+            firebase.initializeApp(config);
+            var database = firebase.database();
+
+            /* jsPsych: add data to every trial */
+            jsPsych.data.addProperties({
+                jspsych_id: jspsych_id,
+                prolificID: prolificID,
+                cond: cond,
+                totalTime: jsPsych.totalTime()
+            });
+
+            var dataRC = jsPsych.data.get().filterCustom(function (x) {
+                return x.task == "RC"
+            }).csv();
+
+            /* Send data to Firebase and redirect to Qualtrics */
+            database
+                .ref(FBdirectory + "/" + jspsych_id + "/")
+                .update({ dataRC })
+                .then(function () {
+                            console.log("Data sent!");
+                $("#jspsych-content").html(debrief);      
+                        });
+        }
+    });
+
+</script>
+
+</html>
