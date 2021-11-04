@@ -124,8 +124,9 @@
     var video_att = ["videos/Attentats_light.mp4"];
     preloadvideo.push(video_att);
 
-    var article_att = ["articles/Article_Att.png"];
-    preloadimages.push(article_att);
+    var article_att_1 = ["articles/Article_Att_1.png"];
+    var article_att_2 = ["articles/Article_Att_2.png"];
+    preloadimages.push(article_att_1, article_att_2);
 
     // EXPERIMENT -----------------------------------------------------------------------------------------------------------------
     /* Instructions and Fullscreen mode */
@@ -267,7 +268,8 @@
     choices: ['continuer'],
     stimulus: function () {
             var html = "";
-            html += "<img class='imgarticle' src='" + article_att+ "'>";
+            html += "<img class='imgarticle' src='" + article_att_1+ "'>";
+            html += "<img class='imgarticle' src='" + article_att_2+ "'>";
             return html;
         },
   };
