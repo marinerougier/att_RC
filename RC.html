@@ -121,7 +121,7 @@
     // randomly assigning either the female or the male list 
     var cond = jsPsych.randomization.sampleWithoutReplacement(["attentats", "jo"], 1)[0];
 
-    var video_att = ["videos/Attentats.mp4"];
+    var video_att = ["videos/Attentats_light.mp4"];
     preloadvideo.push(video_att);
 
     var article_att = ["articles/Article_JO.png"];
@@ -160,7 +160,7 @@
     var consent = {
       type:'external-html',
       //url: "https://marinerougier.github.io/terr_RC/formulaire_consentement.html",
-      url: "https://marinerougier.github.io/Ugent_1/external_page_consent.html",
+      url: "https://marinerougier.github.io/att_RC/formulaire_consentement.html",
       cont_btn: "start",
       check_fn: check_consent
     };
