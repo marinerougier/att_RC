@@ -295,7 +295,7 @@
         choices: ['continuer'],
         stimulus: function () {
             var html = "";
-            html += "<h1>Tâche 2: Tâche de reconnaissance des visages</h1>";
+            html += "<h1>Tâche 2: Tâche de reconnaissance de visages</h1>";
             html += "<p class = 'justify'> Dans cette tâche, nous allons vous présenter une série de visages similaires à l'exemple présenté ci-dessous. ";
             html += "A chaque essai, nous vous présenterons 12 visages. ";
             html += "Notez que ces visages ont été délibérément floutés pour des raisons d'anonymat, ce qui les rendra similaires entre eux. ";
@@ -311,7 +311,7 @@
         choices: ['continuer'],
         stimulus: function () {
             var html = "";
-            html += "<h1>Tâche 2: Tâche de reconnaissance des visages</h1>";
+            html += "<h1>Tâche 2: Tâche de reconnaissance de visages</h1>";
             html += "<p class = 'justify'>A chaque essai, votre tâche sera de choisir, parmi les 12 visages, celui qui ressemble le plus à ";
             html += "<b>un individu d'origine maghrébine, autrement dit le visage qui vous semble le plus typiquement maghrébin. </b><br>";
             html += "<p class = 'justify'>Merci d'utiliser votre souris d'ordinateur pour sélectionner un visage.</p>";
@@ -326,7 +326,7 @@
         choices: ['commencer'],
         stimulus: function () {
             var html = "";
-            html += "<h1>Tâche 2: Tâche de reconnaissance des visages</h1>";
+            html += "<h1>Tâche 2: Tâche de reconnaissance de visages</h1>";
             html += "<p class = 'justify'>Avant de commencer, merci de noter que : </br></br>";
             html += "<b>Il n'y a pas de bonne ou de mauvaise réponse !</b> ";
             html += "Vous devez juste faire un choix aussi <b>intuitivement</b> que possible. ";
@@ -371,11 +371,131 @@
         choices: ['continuer'],
         stimulus: function () {
             var html = "";
-            html += "<p class = 'justify'>La tâche de sélection de visages (Tâche 2) est terminée. Vous allez maintenant passer à la tâche 3.</br></p>";
+            html += "<p class = 'justify'>La tâche de reconnaissance de visages (Tâche 2) est terminée. Vous allez maintenant répondre à quelques questions.</br></p>";
             return html;
         },
     };
 
+      var demand_awareness = {
+        timeline: [{
+            type: 'survey-text',
+            questions: [{ prompt: 'A votre avis, que voulaient essayer de montrer les chercheurs avec cette étude ?', rows: 3, columns: 60 }],
+            button_label: "continuer",
+        }],
+        loop_function: function (data) {
+            var res = data.values()[0].responses;
+            var res = JSON.parse(res).Q0;
+            if (res == "") {
+                alert("Veuillez répondre à cette question avant de passer à la suite !");
+                return true;
+            }
+        },
+        on_finish: function (data) {
+            jsPsych.data.addProperties({
+                demand_awareness: JSON.parse(data.responses).Q0,
+            });
+        },
+    };
+
+      var demand_compliance = {
+      type: 'survey-multi-choice',
+      questions: [{prompt: "Lorsque nous vous avons demandé, dans la tâche 2, de sélectionner le visage qui vous paraissait le plus maghrébin, avez-vous répondu de manière honnête ? Ou avez-vous essayé de modifier vos réponses, par exemple en essayant de répondre de ce vous pensez que nous voulions entendre ? Merci d'être honnête (cela n'affectera votre paiement d'aucune façon).", options: ['Oui - j ai falsifié mes réponses en me basant sur ce que je pensais que les chercheurs voulaient trouver', 'Non - mes réponses étaient basées sur ce que je ressentais vraiment', 'Je ne sais pas'], required: true}],
+      button_label: "Continuer",
+      on_load: function() {
+          window.scrollTo(0, 0);
+          $(".jspsych-content").css("margin-top", "200px");
+          $(".jspsych-content").css("max-width", "90%");
+        },
+      on_finish: function(data) {
+          jsPsych.data.addProperties({
+              demand_compliance: JSON.parse(data.responses)["Q0"],
+          });
+      },
+  };
+
+var age = {
+      timeline: [{
+        type: 'survey-text',
+        questions: [{prompt: "Quel âge avez-vous ?", rows: 1, columns: 10}],
+        button_label: "Continuer",
+      }],
+      on_load: function() {
+          window.scrollTo(0, 0);
+          $(".jspsych-content").css("margin-top", "200px");
+          $(".jspsych-content").css("max-width", "90%");
+        },
+      loop_function: function(data){ 
+        var age = data.values()[0].responses;
+        var age = JSON.parse(age).Q0; 
+        if(age == ""){
+          alert("Veuillez répondre à cette question avant de passer à la suite !"); 
+          return true; 
+        }
+      },
+      on_finish: function(data) {
+          jsPsych.data.addProperties({
+              age: JSON.parse(data.responses)["Q0"],
+          });
+      },
+  };
+
+  var gender = {
+      type: 'survey-multi-choice',
+      questions: [{prompt: "Merci d'indiquer votre genre :", options: ['Homme', 'Femme', 'Autre'], required: true}],
+      button_label: "Continuer",
+      on_finish: function(data) {
+          jsPsych.data.addProperties({
+              gender: JSON.parse(data.responses)["Q0"],
+          });
+      },
+  };
+
+  var languageOptions = ['Langue maternelle', 'Très bon', 'Bon', 'Moyen', 'Mauvais', 'Très mauvais'];
+  var language = {
+        type: 'survey-multi-choice',
+        questions: [{ prompt: "Quel est votre niveau en français ?", options: languageOptions, required: true }],
+        button_label: "continuer",
+        on_finish: function (data) {
+            jsPsych.data.addProperties({
+                language: JSON.parse(data.responses).Q0,
+            });
+            console.log(data);
+        },
+    };
+
+  var Prolific_reported = {
+        timeline: [{
+            type: 'survey-text',
+            questions: [{ prompt: 'Veuillez indiquer votre identifiant Prolific :', rows: 3, columns: 60 }],
+            button_label: "continuer",
+        }],
+        loop_function: function (data) {
+            var res = data.values()[0].responses;
+            var res = JSON.parse(res).Q0;
+            if (res == "") {
+                alert("Veuillez répondre à cette question avant de passer à la suite !");
+                return true;
+            }
+        },
+        on_finish: function (data) {
+            jsPsych.data.addProperties({
+                Prolific_reported: JSON.parse(data.responses).Q0,
+            });
+        },
+    };
+
+  var comments = {
+        timeline: [{
+            type: 'survey-text',
+            questions: [{ prompt: 'Avez-vous des commentaires sur cette étude ? [Optionnel]', rows: 3, columns: 60 }],
+            button_label: "continuer",
+        }],
+        on_finish: function (data) {
+            jsPsych.data.addProperties({
+                Comment: JSON.parse(data.responses).Q0,
+            });
+        },
+    };
     var exitFullscreen = {
         type: 'fullscreen',
         fullscreen_mode: false,
@@ -437,7 +557,15 @@
                   RCinst2,
                   RCinst3,
                   RCinst4,
-                  RC);
+                  RC, 
+                  RCend, 
+                  demand_awareness, 
+                  demand_compliance, 
+                  age, 
+                  gender, 
+                  language,
+                  Prolific_reported,
+                  comments);
 
     timeline.push(exitFullscreen);
 
