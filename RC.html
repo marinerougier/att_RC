@@ -118,15 +118,25 @@
 
     var RCstim = genFacesPerSlide(12, imgsRC); // RC fast-12: 250 trials (6 ori + 6 anti = 12  faces per trial)
 
-    // randomly assigning either the female or the male list 
-    var cond = jsPsych.randomization.sampleWithoutReplacement(["attentats", "jo"], 1)[0];
+    // randomly assigning either to the terrorist attack or to the Olympic games condition
+    var cond = jsPsych.data.getURLVariable("cond");
+    if(cond == null) {cond = jsPsych.randomization.sampleWithoutReplacement(["attentats", "jo"], 1)[0];}
 
-    var video_att = ["videos/Attentats_light.mp4"];
+    // Loading the videos and article from both conditions
+    var video_att = ["videos/Att_light.mp4"];
     preloadvideo.push(video_att);
+
+    var video_jo = ["videos/JO_light.mp4"];
+    preloadvideo.push(video_jo);
 
     var article_att_1 = ["articles/Article_Att_1.png"];
     var article_att_2 = ["articles/Article_Att_2.png"];
     preloadimages.push(article_att_1, article_att_2);
+
+    var article_jo_1 = ["articles/Article_JO_1.png"];
+    var article_jo_2 = ["articles/Article_JO_2.png"];
+    var article_jo_3 = ["articles/Article_JO_3.png"];
+    preloadimages.push(article_jo_1, article_jo_2, article_jo_3);
 
     // EXPERIMENT -----------------------------------------------------------------------------------------------------------------
     /* Instructions and Fullscreen mode */
@@ -204,7 +214,7 @@
         },
     };
 
-    var induct_JO_1 = {
+    var induct_jo_1 = {
         type: "html-button-response",
         post_trial_gap: 300,
         choices: ['continuer'],
@@ -224,6 +234,18 @@
     var video_attentats = {
         type: 'video-keyboard-response',
         sources: video_att,
+        prompt: "IMPORTANT : Avant d'appuyer sur le bouton 'lecture', merci de <b>mettre la vidéo en plein écran.</b><br> Merci aussi de <b>regarder la vidéo en une seule fois.</b>",
+        choices: jsPsych.NO_KEYS,
+        trial_ends_after_video: true,
+        controls: true,
+        autoplay: false,
+        width: 800
+    }
+
+    /* Vidéo JO  */
+    var video_jo = {
+        type: 'video-keyboard-response',
+        sources: video_jo,
         prompt: "IMPORTANT : Avant d'appuyer sur le bouton 'lecture', merci de <b>mettre la vidéo en plein écran.</b><br> Merci aussi de <b>regarder la vidéo en une seule fois.</b>",
         choices: jsPsych.NO_KEYS,
         trial_ends_after_video: true,
@@ -270,6 +292,19 @@
             var html = "";
             html += "<img class='imgarticle' src='" + article_att_1+ "'>";
             html += "<img class='imgarticle' src='" + article_att_2+ "'>";
+            return html;
+        },
+  };
+
+    var article_jo = {
+    type: "html-button-response",
+    post_trial_gap: 300,
+    choices: ['continuer'],
+    stimulus: function () {
+            var html = "";
+            html += "<img class='imgarticle' src='" + article_jo_1+ "'>";
+            html += "<img class='imgarticle' src='" + article_jo_2+ "'>";
+            html += "<img class='imgarticle' src='" + article_jo_3+ "'>";
             return html;
         },
   };
@@ -506,39 +541,35 @@ var age = {
 
       /* DEBRIEF */
   var debrief = [];
-  debrief += "<h1>End of the study</h1>";
-  debrief += "<p class='justify'>Thank you for participating in this online experiment!<br><br>";
-  debrief += "In some experiments, we cannot tell people everything about the experiment at the beginning because their responses would not be ";
-  debrief += "natural. For example, if we told people what the point of the experiment was ahead of time, then some people might do whatever ";
-  debrief += "it is they think we want them to do, just to be helpful. Other people might do the exact opposite of what they think we want "; 
-  debrief += "them to do, just to show us that we cannot figure them out. When people are trying to second-guess what the experiment is "; 
-  debrief += "really about, and they behave a certain way because of it, our results get messed up. That is because they are not behaving "; 
-  debrief += "like they naturally would in the real world. The whole point of this experiment is to find out how people would ";
-  debrief += "naturally behave.<br><br>";
-  debrief += "Now we would like to explain what we were trying to learn about with this study. First of all, you should know that the aim of "; 
-  debrief += "this study was not to investigate your perception accuracy. Perception accuracy is not a real ability. Instead, our "; 
-  debrief += "aim was to test whether your judgment of the three persons you saw depended on the physical attractiveness of the persons they were associated with. "; 
-  debrief += "Individuals tend to attribute many positive qualities to attractive persons. For instance, when a person is attractive, "; 
-  debrief += "people tend to think that s/he is also trustworthy.<br><br>";
-  debrief += "Our goal is to test if we can find a similar effect (that is called the “attractiveness Halo effect”) in the present study "; 
-  debrief += "with our procedure. Indeed, in the present study, we presented you faces varying on attractiveness (on the ) "; 
-  debrief += "on one side of the screen, paired with faces relatively neutral on attractiveness on the other side (on the ). ";
-  debrief += "Our hypothesis was thus that the attractiveness value of the attractive/less attractive face should influence the ";
-  debrief += "perceived attractiveness of the other face in the pair. Therefore, participants’ evaluations of the initially neutral faces "; 
-  debrief += "should vary as a function of the physical attractiveness of the faces they were paired with. <br><br>";
-  debrief += "In addition, for half of the participants, we made the attractiveness of the faces on the  very salient ";
-  debrief += "(with labels and instructions). The other half of the participants did not receive this attractiveness information. ";
-  debrief += "We expect the influence of the attractiveness on the on the other face to be larger for the first group of participants. <br><br>";
-  debrief += "We would like to emphasize that there are no correct responses in this study: We were looking at people’s natural responses. ";
-  debrief += "We hope you understand that we couldn't tell you all of this before because it would have ruined our study. ";
-  debrief += "Again, your responses will be anonymous and will be analyzed as part of a group of responses.</br></br>";
-  debrief += "We hope this explanation was clear. If you want additional information, if you have any questions, or if you would like ";
-  debrief += "to withdraw consent and have your data excluded, do not hesitate to contact us via Prolific Academic. If you are "; 
-  debrief += "interested, you can also ask for the results of this experiment—be aware, however, that this could take several weeks "; 
-  debrief += "to gather all the data we need and to analyze them. <br><br>";
-  debrief += "You can copy this code on Prolific: <b>68784134</b> ";
-  debrief += "or you can click on the following link to validate your participation:</p>";
-  debrief += "<a href='https://app.prolific.co/submissions/complete?cc=68784134' target='_blank'>click here</a><br><br>";
+  debrief += "<h1>Fin de l'étude</h1>";
+  debrief += "<p class='justify'>Merci d'avoir participé à cette expérience en ligne !<br><br>";
+  debrief += "Dans certaines études, nous ne pouvons pas tout expliquer aux participants dès le début de l'étude ou leurs réponses pourraient ne pas ";
+  debrief += "être naturelles. Par exemple, si nous avions dit aux participants dès le départ ce qu'était le but de cette étude, alors certains participants pourraient avoir tendance à ";
+  debrief += "faire ce qu'ils pensent que nous voulons qu'ils fassent, en pensant nous aider. D'autres participants pourraient faire l'opposé de ce qu'ils pensent que nous voulons qu'ils fassent, "; 
+  debrief += "juste pour nous montrer que nous ne pouvons pas les cerner. Quand les participants essayent de deviner quel est le véritable but de l'étude et qu'ils "; 
+  debrief += "se comportent d'une certaine manière à cause de cela, nos résultats sont complètement faussés. C'est parce que les individus ne se comportent pas comme "; 
+  debrief += "ils le feraient naturellement dans la vie réelle. Or, le but de cette étude est précisément de voir comment les gens se comportent naturellement. <br><br>";
+  debrief += "Maintenant, nous voudrions vous expliquer ce que nous cherchons à tester avec cette étude. Tout d'abord, vous devez savoir que l'article de journal que vous avez lu est <b>totalement FAUX</b>: Ce n'est pas un vrai article de journal, <b>nous l'avons créé de toutes pièces. </b> "; 
+  debrief += "Les images que vous avez vues dans la vidéo, en revanche, sont de vraies images que nous avons montées nous mêmes pour créer la vidéo. "; 
+  debrief += "La vidéo et l'article de journal portaient tous deux soit sur la thématique des jeux olympiques (pour la moitié d'entre vous) soit sur la thématique des attentats terroristes (pour l'autre moitié d'entre vous).  "; 
+  debrief += "<b>Notre but ici était de tester l'impact que peut avoir un rappel des attentats et de la menace terroriste (en comparaison à la menace économique des Jeux Olympiques) sur la perception des individus d'origine maghrébine. </b><br><br>";
+  debrief += "Effectivement, plusieurs travaux en psychologie suggèrent qu'après un attentat terroriste, les individus d'origine maghrébine vivant en France sont perçus plus négativement, ceci pouvant amener éventuellement à plus de comportements négatifs envers ce groupe de personnes. "; 
+  debrief += "Dans la présente étude, nous voulions tester si, après un rappel des attentats terroristes passés, les participants expriment une représentation visuelle plus négative des individus d'origine maghrébine, en comparaison aux individus exposés à la thématique des jeux olympiques. "; 
+  debrief += "La représentation visuelle des individus d'origine maghrébine était mesurée grâce à la tâche de 'reconnaissance des visages'. ";
+  debrief += "Cette tâche nous permet de visualiser la manière dont nous nous représentons le visage 'moyen' d'un invidus d'origine maghrébine. ";
+  debrief += "Cette représentation visuelle peut être plus ou moins négative (par ex. menaçante) ou positive (par ex. joyeuse) "; 
+  debrief += " et devrait donc varier - du moins c'est l'hypothèse que nous faisons - en fonction du rappel (attentats versus jeux olympiques). <br><br>";
+  debrief += "Plus spécifiquement, nous nous attendons à une représentation plus menaçante après un rappel des attentats qu'après un rappel des jeux olympiques. ";
+  debrief += "Nous voudrions insister sur le fait qu'il n'y avait pas de bonne ou mauvaise réponse dans cette étude : Nous étions seulement intéressés par vos réponses naturelles. ";
+  debrief += "Nous espérons que vous comprenez que nous ne pouvions pas vous dire tout cela avant, car cela aurait faussé notre étude. ";
+  debrief += "Notez que vos réponses seront anonymes et ne seront pas analysées individuellement mais au sein d'un groupe de réponses.</br></br> ";
+  debrief += "Nous espérons que cette explication était claire. Si vous souhaitez des informations supplémentaires, si vous avez des questions, ou si vous voulez ";
+  debrief += "retirer votre consentement et faire exclure vos données de notre étude, n'hésitez pas à nous contacter via Prolific Academic. Si vous êtes "; 
+  debrief += "intéressé, vous pouvez également demander un résumé des résultats de cette expérience, mais sachez que cela peut prendre plusieurs semaines "; 
+  debrief += "de rassembler toutes les données dont nous avons besoin et les analyser. <br><br>";
+  debrief += "Vous pouvez copier ce code sur Prolific : <b>68784134</b> ";
+  debrief += "ou vous pouvez cliquer sur le lien suivant pour valider votre participation :</p>";
+  debrief += "<a href='https://app.prolific.co/submissions/complete?cc=68784134' target='_blank'>Cliquez ici</a><br><br>";
 
 
 
@@ -548,12 +579,24 @@ var age = {
     timeline.push(activateFullscreen,
                 Quit_expe);
 
+  switch(cond) {
+  case "attentats":
     timeline.push(induct_att_1,
                   video_attentats,
                   induct_gene_2,
                   induct_gene_3,
-                  article_attentats,
-                  induct_gene_4,
+                  article_attentats);
+    break;
+  case "jo":
+    timeline.push(induct_jo_1,
+                  video_jo,
+                  induct_gene_2,
+                  induct_gene_3,
+                  article_jo);
+    break;
+                }
+
+    timeline.push(induct_gene_4,
                   RCinst2,
                   RCinst3,
                   RCinst4,
