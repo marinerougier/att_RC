@@ -242,7 +242,12 @@
         trial_ends_after_video: true,
         controls: true,
         autoplay: false,
-        width: 800
+        width: 800,
+        on_finish: function(data) {
+          jsPsych.data.addProperties({
+              rt: JSON.parse(data.responses)[rt],
+          });
+      },
     }
 
     /* Vidéo JO  */
@@ -254,7 +259,12 @@
         trial_ends_after_video: true,
         controls: true,
         autoplay: false,
-        width: 800
+        width: 800,
+        on_finish: function(data) {
+          jsPsych.data.addProperties({
+              rt: JSON.parse(data.responses)[rt],
+          });
+      },
     }
 
     var induct_gene_2 = {
