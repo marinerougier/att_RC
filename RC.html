@@ -242,7 +242,17 @@
         trial_ends_after_video: true,
         controls: true,
         autoplay: false,
-        width: 800
+        width: 800,
+        on_start: function () {
+          jsPsych.data.addProperties({
+            video_time_start: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
+        on_finish: function () {
+          jsPsych.data.addProperties({
+            video_time_finish: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
     }
 
     /* Vidéo JO  */
@@ -254,7 +264,17 @@
         trial_ends_after_video: true,
         controls: true,
         autoplay: false,
-        width: 800
+        width: 800,
+        on_start: function () {
+          jsPsych.data.addProperties({
+            video_time_start: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
+        on_finish: function () {
+          jsPsych.data.addProperties({
+            video_time_finish: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
     }
 
     var induct_gene_2 = {
@@ -297,6 +317,16 @@
             html += "<img class='imgarticle' src='" + article_att_2+ "'>";
             return html;
         },
+        on_start: function () {
+          jsPsych.data.addProperties({
+            article_time_start: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
+        on_finish: function () {
+          jsPsych.data.addProperties({
+            article_time_finish: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
   };
 
     var article_jo = {
@@ -309,6 +339,16 @@
             html += "<img class='imgarticle' src='" + article_jo_2+ "'>";
             html += "<img class='imgarticle' src='" + article_jo_3+ "'>";
             return html;
+        },
+        on_start: function () {
+          jsPsych.data.addProperties({
+            article_time_start: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
+        },
+        on_finish: function () {
+          jsPsych.data.addProperties({
+            article_time_finish: Date.now(), // milliseconds elapsed since January 1, 1970
+          });
         },
   };
 
