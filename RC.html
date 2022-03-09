@@ -243,11 +243,9 @@
         controls: true,
         autoplay: false,
         width: 800,
-        on_finish: function(data) {
-          jsPsych.data.addProperties({
-              rt: JSON.parse(data.responses)[rt],
-          });
-      },
+        data: {
+            task: 'video',
+        },
     }
 
     /* Vidéo JO  */
@@ -260,11 +258,9 @@
         controls: true,
         autoplay: false,
         width: 800,
-        on_finish: function(data) {
-          jsPsych.data.addProperties({
-              rt: JSON.parse(data.responses)[rt],
-          });
-      },
+        data: {
+            task: 'video',
+        },
     }
 
     var induct_gene_2 = {
@@ -653,6 +649,9 @@ var age = {
                 cond: cond,
                 totalTime: jsPsych.totalTime()
             });
+            var dataVideo = jsPsych.data.get().filterCustom(function (x) {
+                return x.task == "video"
+            }).csv();
 
             var dataRC = jsPsych.data.get().filterCustom(function (x) {
                 return x.task == "RC"
@@ -661,6 +660,7 @@ var age = {
             /* Send data to Firebase and redirect to Qualtrics */
             database
                 .ref(FBdirectory + "/" + jspsych_id + "/")
+                .update({ dataVideo })
                 .update({ dataRC })
                 .then(function () {
                             console.log("Data sent!");
